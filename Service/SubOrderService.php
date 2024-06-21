@@ -23,7 +23,6 @@ use Thelia\Model\Order;
 use Thelia\Model\OrderProductAttributeCombination;
 use Thelia\Model\OrderProductTax;
 use Thelia\Model\OrderStatusQuery;
-use Thelia\Model\ProductQuery;
 use Thelia\Model\ProductSaleElementsQuery;
 
 class SubOrderService
@@ -161,14 +160,6 @@ class SubOrderService
         foreach ($orderProducts as $orderProduct) {
             $newEvent = new CartEvent($cart);
             $newEvent->setQuantity($orderProduct->getQuantity());
-            $product = ProductQuery::create()
-                ->filterByVisible(true)
-                ->filterByRef($orderProduct->getProductRef())
-                ->findOne();
-
-            if (null === $product) {
-                continue;
-            }
 
             $pse = ProductSaleElementsQuery::create()
                 ->filterById($orderProduct->getProductSaleElementsId())
@@ -184,7 +175,7 @@ class SubOrderService
                 continue;
             }
 
-            $newEvent->setProduct($product->getId());
+            $newEvent->setProduct($pse->getProductId());
             $newEvent->setNewness(true);
             $newEvent->setAppend(false);
             $newEvent->setProductSaleElementsId($pse->getId());

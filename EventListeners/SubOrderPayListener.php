@@ -3,6 +3,7 @@
 namespace SubOrderGenerator\EventListeners;
 
 use OpenApi\Events\ModelExtendDataEvent;
+use OpenApi\Model\Api\CartItem;
 use SubOrderGenerator\Model\SubOrder;
 use SubOrderGenerator\Model\SubOrderQuery;
 use SubOrderGenerator\Service\SubOrderService;
@@ -16,6 +17,8 @@ use Thelia\Core\Event\Order\OrderPaymentEvent;
 use Thelia\Core\Event\Order\OrderPayTotalEvent;
 use Thelia\Core\Event\Payment\IsValidPaymentEvent;
 use Thelia\Core\Event\TheliaEvents;
+use Thelia\Model\Event\CartEvent;
+use Thelia\Model\Event\CartItemEvent;
 use Thelia\Model\Order as OrderModel;
 
 class SubOrderPayListener implements EventSubscriberInterface
@@ -88,30 +91,12 @@ class SubOrderPayListener implements EventSubscriberInterface
         }
     }
 
-    public function updateCart(ModelExtendDataEvent $event){
-
-        $session = $this->requestStack->getCurrentRequest()->getSession();
-        //if no suborder token found do nothing
-        if(null === $subOrderToken = $session->get(SubOrderGenerator::SUBORDER_TOKEN_SESSION_KEY)){
-            return;
-        }
-
-        if(null === $suborderLink = SubOrderQuery::create()->findOneByToken($subOrderToken)){
-            throw new NotFoundHttpException('No subOrder Associated to token');
-        }
-        $order = $suborderLink->getOrderRelatedBySubOrderId();
-
-        $event->setExtendDataKeyValue("total_amount_sub_order", round($order->getTotalAmount() - $this->subOrderService->getAmountAlreadyPaid($suborderLink),2) );
-
-    }
-
     public static function getSubscribedEvents()
     {
         return [
             TheliaEvents::ORDER_PAY => ['paySubOrder', 200],
             TheliaEvents::MODULE_PAYMENT_IS_VALID => ['filterSubOrderPayment'],
             TheliaEvents::ORDER_PAY_GET_TOTAL => ['changeTotalForSubOrder', 70],
-            ModelExtendDataEvent::ADD_EXTEND_DATA_PREFIX . "cart" => ['updateCart', 10],
         ];
     }
 }
