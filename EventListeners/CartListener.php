@@ -40,6 +40,7 @@ class CartListener implements EventSubscriberInterface
         }
         $order = $suborderLink->getOrderRelatedBySubOrderId();
 
+        $event->setExtendDataKeyValue("shipping_with_taxes",round ($order->getPostage(),2));
         $event->setExtendDataKeyValue("total_amount_sub_order", round($order->getTotalAmount() - $this->subOrderService->getAmountAlreadyPaid($suborderLink),2) );
     }
 

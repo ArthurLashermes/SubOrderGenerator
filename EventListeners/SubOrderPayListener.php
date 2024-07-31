@@ -50,6 +50,7 @@ class SubOrderPayListener implements EventSubscriberInterface
         $suborder->save();
 
         $session->remove(SubOrderGenerator::SUBORDER_TOKEN_SESSION_KEY);
+        $session->clearSessionCart($dispatcher);
 
         /* but memorize placed order */
         $event->setOrder(new OrderModel());
